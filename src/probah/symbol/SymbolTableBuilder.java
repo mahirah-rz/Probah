@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import probah.ast.AssignmentNode;
-import probah.ast.AstNode;
 import probah.ast.BlockNode;
 import probah.ast.BooleanLiteralNode;
 import probah.ast.DeclarationNode;

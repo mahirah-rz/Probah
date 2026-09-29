@@ -5,12 +5,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import probah.ast.AstPrinter;
 import probah.ast.ProgramNode;
 import probah.lexer.Lexer;
 import probah.lexer.Token;
 import probah.parser.Parser;
+import probah.semantic.SemanticAnalyzer;
 import probah.symbol.SymbolTable;
-import probah.symbol.SymbolTableBuilder;
+import probah.tac.TACInstruction;
+import probah.tac.TACOptimizer;
+import probah.tac.TACgenerator;
 
 public class Main {
 
@@ -90,41 +94,75 @@ public class Main {
 
            
             System.out.println();
-            System.out.println(" AST ");
+            
 
-            System.out.println(program);
+            System.out.println(" AST:");
+            AstPrinter.print(program);
+
+
+            System.out.println();
+            System.out.println("SEMANTIC ANALYSIS:");
+            
+            SemanticAnalyzer semanticAnalyzer =new SemanticAnalyzer();
+            
+            SymbolTable symbolTable =semanticAnalyzer.analyze(program);
+            
+            if (!semanticAnalyzer.getErrors().isEmpty()) {
+                
+                for (String error :
+                
+                semanticAnalyzer.getErrors()) {
+                    System.out.println(error);
+                }
+                
+                System.out.println();
+                System.out.println("Compilation stopped: semantic errors found.");
+                
+                return;
+            }
+            
+            System.out.println("No semantic errors.");
 
         
             System.out.println();
             System.out.println("SYMBOL TABLE");
 
-            SymbolTableBuilder symbolTableBuilder =
-                    new SymbolTableBuilder();
-
-            SymbolTable symbolTable =
-                    symbolTableBuilder.build(program);
+        
 
             symbolTable.printTable();
 
             
-            if (!symbolTableBuilder.getErrors().isEmpty()) {
 
-                System.out.println();
-                System.out.println("SYMBOL TABLE ERRORS");
-
-                for (String error : symbolTableBuilder.getErrors()) {
-                    System.out.println(error);
+            TACgenerator tacGenerator =new TACgenerator();
+            
+            List<TACInstruction> tac =tacGenerator.generate(program);
+            
+            int number = 1;
+            
+            for (TACInstruction instruction : tac) {
+                System.out.printf(
+                    "%3d: %s%n",
+                    number++,
+                    instruction
+                    );
                 }
-
-            } else {
-
+                
+                
+                TACOptimizer optimizer = new TACOptimizer();
+                List<TACInstruction> optimizedTac =optimizer.optimize(tac);
+                
                 System.out.println();
-                System.out.println("Symbol table is constructed.");
-            }
-
+                System.out.println("OPTIMIZED TAC:");
+                
+                number = 1;
+                
+                for (TACInstruction instruction : optimizedTac) {
+                    System.out.printf("%3d: %s%n",
+                    number++,
+                    instruction);
+                }
         
-            System.out.println();
-            System.out.println("Semantic Analysis: NOT IMPLEMENTED YET.");
+            
 
         } catch (IOException e) {
 
